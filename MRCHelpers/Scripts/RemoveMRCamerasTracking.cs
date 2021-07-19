@@ -18,6 +18,8 @@ namespace MRCHelpers
         /// </summary>
         private IEnumerator Start()
         {
+            Transform trackingSpaceTransform = transform.Find("TrackingSpace");
+
             //the names of the cameras that Oculus adds for MRC
             string[] camerasNames = new string[] { "OculusMRC_BackgroundCamera", "OculusMRC_ForgroundCamera" };
             Transform tr = null;
@@ -29,7 +31,7 @@ namespace MRCHelpers
             foreach (string cameraName in camerasNames)
             {
                 //find it, and destroy its TrackedPoseDriver when it gets added
-                yield return new WaitUntil(() => (tr = transform.Find(cameraName)) != null);
+                yield return new WaitUntil(() => (tr = trackingSpaceTransform.Find(cameraName)) != null);
                 yield return new WaitUntil(() => tr.GetComponent<TrackedPoseDriver>() != null);
                 Destroy(tr.GetComponent<TrackedPoseDriver>());
             }
