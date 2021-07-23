@@ -16,8 +16,17 @@ namespace MRCHelpers
         /// <summary>
         /// Start
         /// </summary>
-        private IEnumerator Start()
+        private void Start()
         {
+            StartCoroutine(RemoveCamerasTracking());
+        }
+
+        /// <summary>
+        /// Coroutine to remove tracking scripts from cameras
+        /// </summary>
+        private IEnumerator RemoveCamerasTracking()
+        {
+            //get the tracking space child
             Transform trackingSpaceTransform = transform.Find("TrackingSpace");
 
             //the names of the cameras that Oculus adds for MRC
@@ -26,16 +35,24 @@ namespace MRCHelpers
 
             //let everything initialize
             yield return null;
+            var waiter = new WaitForSeconds(0.5f);
 
-            //for each camera
-            foreach (string cameraName in camerasNames)
+            //I have noticed the system may re-created the cameras in some conditions
+            //(e.g. the player disconnects and reconnects with OBS), so we must keep deleting them forever
+            while (true)
             {
-                //find it, and destroy its TrackedPoseDriver when it gets added
-                yield return new WaitUntil(() => (tr = trackingSpaceTransform.Find(cameraName)) != null);
-                yield return new WaitUntil(() => tr.GetComponent<TrackedPoseDriver>() != null);
-                Destroy(tr.GetComponent<TrackedPoseDriver>());
-            }
+                //for each camera
+                foreach (string cameraName in camerasNames)
+                {
+                    //find the camera, and destroy its TrackedPoseDriver if there is one attached
+                    if ((tr = trackingSpaceTransform.Find(cameraName)) != null)
+                        if (tr.GetComponent<TrackedPoseDriver>() != null)
+                            Destroy(tr.GetComponent<TrackedPoseDriver>());
+                }
 
+                //wait a bit before looking again
+                yield return waiter;
+            }
         }
     }
 
